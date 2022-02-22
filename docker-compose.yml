@@ -30,7 +30,17 @@ services:
     networks:
       - nginx-proxy
     environment:
-      - DEFAULT_EMAIL=${EMAIL}
+      - DEFAULT_EMAIL=${NGINX_PROXY_DEFAULT_EMAIL}
+
+  apprtc-server:
+    image: piasy/apprtc-server
+    container_name: apprtc-server
+    networks:
+      - nginx-proxy
+    environment:
+      - LETSENCRYPT_HOST=${NGINX_PROXY_LETSENCRYPT_HOST}
+      - VIRTUAL_HOST=${APPRTC_VIRTUAL_HOST}
+      - VIRTUAL_HOST=${APPRTC_VIRTUAL_PORT}
 
 volumes:
   certs:
