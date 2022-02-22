@@ -12,31 +12,29 @@ services:
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    networks:
-      - external-network
 
   acme-companion:
     image: nginxproxy/acme-companion
     container_name: acme-companion
-    ports:
-      - '80:80'
-      - '443:443'
     volumes:
       - certs:/etc/nginx/certs
       - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
       - acme:/etc/acme.sh
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    networks:
-      - external-network
     environment:
       - DEFAULT_EMAIL=${NGINX_PROXY_DEFAULT_EMAIL}
 
   apprtc-server:
     image: piasy/apprtc-server
     container_name: apprtc-server
-    networks:
-      - external-network
+    ports:
+      - '8080:8080'
+      - '8089:8089'
+      - '3478:3478'
+      - '3033:3033'
+      - '3478:3478/udp'
+      - '59000-65000:59000-65000/udp'
     environment:
       - LETSENCRYPT_HOST=${NGINX_PROXY_LETSENCRYPT_HOST}
       - VIRTUAL_HOST=${APPRTC_VIRTUAL_HOST}
@@ -47,8 +45,3 @@ volumes:
   vhost:
   html:
   acme:
-
-networks:
-  default:
-    external: true
-    name: external-network
