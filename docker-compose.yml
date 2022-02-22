@@ -1,55 +1,44 @@
-version: "3.7"
+version: '3.9'
 
 services:
-  web-nginx:
-    image: nginx:1.18-alpine
-    container_name: ${APP_PREFIX}-web-nginx
-    working_dir: ${DST_DIR}/${APP_PREFIX}-backend
-    volumes:
-      - ${SRC_BACKEND_DIR}:${DST_DIR}/${APP_PREFIX}-backend
-      - ./nginx/node-backend:/etc/nginx/conf.d
-    environment:
-      - NGINX_PORT=80
-      - VIRTUAL_PORT=80
-      - VIRTUAL_HOST=${DOMAIN_BACK},www.${DOMAIN_BACK}
-      - LETSENCRYPT_HOST=${DOMAIN_BACK}
-      - LETSENCRYPT_EMAIL=temp@mirroringforme.live
-    depends_on:
-      - backend
-    networks:
-      - internal
-
   nginx-proxy:
     image: nginxproxy/nginx-proxy
     container_name: nginx-proxy
-    restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
-      - host:/etc/nginx/vhost.d
-      - certs:/etc/nginx/certs:ro
       - /var/run/docker.sock:/tmp/docker.sock:ro
-    labels:
-      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy
     networks:
-      - internal
-
-  letsencrypt:
-    image: nginxproxy/acme-companion
-    container_name: letsencrypt
-    restart: always
-    depends_on:
       - nginx-proxy
+
+  acme-companion:
+    image: nginxproxy/acme-companion
+    container_name: acme-companion
+    ports:
+      - '80:80'
+      - '443:443'
     volumes:
-      - certs:/etc/nginx/certs:rw
-      - host:/etc/nginx/vhost.d
+      - certs:/etc/nginx/certs
+      - vhost:/etc/nginx/vhost.d
       - html:/usr/share/nginx/html
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme:/etc/acme.sh
+      - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
-      - internal
+      - nginx-proxy
+    environment:
+      - DEFAULT_EMAIL=${EMAIL}
+
+volumes:
+  certs:
+  vhost:
+  html:
+  acme:
 
 networks:
-  internal:
-    driver: "bridge"
+  nginx-proxy:
+    external:
+      name: nginx-proxy
