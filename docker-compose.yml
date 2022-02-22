@@ -13,7 +13,7 @@ services:
       - html:/usr/share/nginx/html
       - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
-      - nginx-proxy
+      - external-network
 
   acme-companion:
     image: nginxproxy/acme-companion
@@ -28,7 +28,7 @@ services:
       - acme:/etc/acme.sh
       - /var/run/docker.sock:/tmp/docker.sock:ro
     networks:
-      - nginx-proxy
+      - external-network
     environment:
       - DEFAULT_EMAIL=${NGINX_PROXY_DEFAULT_EMAIL}
 
@@ -36,7 +36,7 @@ services:
     image: piasy/apprtc-server
     container_name: apprtc-server
     networks:
-      - nginx-proxy
+      - external-network
     environment:
       - LETSENCRYPT_HOST=${NGINX_PROXY_LETSENCRYPT_HOST}
       - VIRTUAL_HOST=${APPRTC_VIRTUAL_HOST}
@@ -49,6 +49,6 @@ volumes:
   acme:
 
 networks:
-  nginx-proxy:
-    external:
-      name: nginx-proxy
+  default:
+    external: true
+    name: external-network
